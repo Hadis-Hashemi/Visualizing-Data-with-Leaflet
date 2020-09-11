@@ -1,26 +1,19 @@
 
 // Function that will determine the color of a neighborhood based on the borough it belongs to
-function chooseColor(mag) {
-     if (mag>=5){
-        return "#CD5C5C"};
-        if (mag>=4 & mag<5){
-            return "#EF820D"};
-            if (mag>=3 & mag<4){
-                return "#F9A602"};
-                if (mag>=2 & mag<3){
-                    return "#FADA5E"};
-                    if (mag>=1 & mag<2){
-                        return "#C&EA46"};
-                        if(mag>=0 & mag<1){
-                            return "#3BB143"
-                        };
+function chooseColor(d) {
+    return d>5 ? 'red':
+    d>4 ? "#FFEDA0":
+    d>3 ? "orange":
+    d>2 ? "yellow":
+    d>1 ? "#bfff00":
+    "#00fa00";
                             
-}
+};
 
 
 
 
-function createFeatures(earthquakeData) {
+function createFeatures(earthquakeData, faultResult ) {
 
     // Define a function we want to run once for each feature in the features array
     // Give each feature a popup describing the place and time of the earthquake
@@ -53,10 +46,27 @@ function createFeatures(earthquakeData) {
 
             onEachFeature: onEachFeature
                 })
+
+      
    
     // Sending our earthquakes layer to the createMap function
     createMap(earthquakes);
 }
+
+// var faultResult = d3.json(queryFaults, function(d2){
+//     console.log(d2.features)
+//     L.geoJson(d2.features, {
+//       style: function(){
+//         return{
+//               color: "orange",
+//               fillOpacity: 0.,
+//               weight: 2
+//             }
+
+//       },
+//     })
+//     createMap(faultResult);
+// })
 
 function createMap(earthquakes) {
 
@@ -110,23 +120,44 @@ function createMap(earthquakes) {
 
     
 // // Create a legend to display information about our map
-// const info = L.control({
-//     position: "bottomright"
-// });
+const info = L.control({
+    position: "bottomright"
+});
 
-//     // When the layer control is added, insert a div with the class of "legend"
-// info.onAdd = function() {
-//     const div = L.DomUtil.create("div", "legend");
-//     return div;
-// };
-// // Add the info legend to the map
-// info.addTo(myMap);
+    // When the layer control is added, insert a div with the class of "legend"
+info.onAdd = function() {
+    const div = L.DomUtil.create("div", "legend");
+
+    grades = [0, 1,2,3,4,5],
+    labels = [];
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+         
+            '<i style="background:' + chooseColor(grades[i] + 1) + '"></i> ' +
+          grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+}
+    return div;
+};
+// Add the info legend to the map
+info.addTo(myMap);
+
+
 
 }
 (async function(){
-    const queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-    const data = await d3.json(queryUrl);
+    const queryEarthquake = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+    let queryFaults='https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json'
+    const data = await d3.json(queryEarthquake);
+    // const dataFaults = await d3.json(queryFaults);
+
+
+
     // Once we get a response, send the data.features object to the createFeatures function
     createFeatures(data.features);
+    // createFeatures(faultResult);
+
+
 })()
 
